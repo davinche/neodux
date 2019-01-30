@@ -1,0 +1,51 @@
+{
+  "name": "neodux",
+  "version": "0.0.1",
+  "description": "Neodux - State Management for JavaScript",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "action",
+    "handler",
+    "neodux",
+    "redux",
+    "reducer",
+    "state",
+    "management"
+  ],
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "dist",
+    "lib"
+  ],
+  "scripts": {
+    "build": "rimraf ./dist && rollup -c",
+    "build:watch": "rollup -cw",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
+    "test:coverage": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neoduxjs/neodux.git"
+  },
+  "author": "Vincent Cheung <hello@mynameisvincent.com> (https://github.com/davinche)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/neoduxjs/neodux/issues"
+  },
+  "homepage": "https://github.com/neoduxjs/neodux#readme",
+  "devDependencies": {
+    "@types/jest": "^23.3.13",
+    "@types/promise": "^7.1.30",
+    "jest": "^23.0.0",
+    "rimraf": "^2.6.3",
+    "rollup": "^1.1.2",
+    "rollup-plugin-typescript2": "^0.19.2",
+    "ts-jest": "^23.10.5",
+    "typescript": "^3.2.4"
+  }
+}
