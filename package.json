@@ -18,12 +18,11 @@
     "lib": "lib"
   },
   "files": [
-    "dist",
-    "lib"
+    "dist"
   ],
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
-    "build:watch": "rollup -cw",
+    "build:watch": "rimraf ./dist && rollup -cw",
     "test": "jest",
     "test:watch": "jest --watchAll",
     "test:coverage": "jest --coverage"
