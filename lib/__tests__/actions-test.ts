@@ -37,7 +37,7 @@ describe('ActionsRegistry', () => {
       expect(shouldThrow).toThrow();
     });
 
-    it('allows registering multiple actions that dispatch a certain action type', () => {
+    it('allows registering multiple handlers that dispatch a certain action type', () => {
       const registry = new ActionsRegistry();
       const toRegister = {
         selector: 'counter',
@@ -157,6 +157,8 @@ describe('ActionsRegistry', () => {
       expect(sec).toHaveBeenCalledWith(59);
       expect(min).toHaveBeenCalledWith(0);
       await store.do('incrementSec');
+      // flush dispatch queue for testing);
+      await new Promise((resolve) => setImmediate(resolve));
       expect(min).toHaveBeenCalledWith(1);
       await store.do('resetClock');
       expect(sec).toHaveBeenCalledWith(0);
@@ -175,14 +177,52 @@ describe('ActionsRegistry', () => {
         }
       });
       const store = await registry.createStore();
-      const shouldThrow = function() {
-        store.dispatch('foo');
-      };
-      expect(shouldThrow).toThrow();
+      let error;
+      try {
+        await store.dispatch('foo');
+      } catch(e) { error = e;}
+      expect(error).toBeDefined();
+    });
+
+    describe('do', () => {
+      it('handles the three parameter registration cases correctly', async () => {
+        const registry = new ActionsRegistry();
+        const toRegister = {
+          selector: 'counter',
+          handler: <Handler>function({ state=0, type}) {
+            switch(type) {
+              case 'increment':
+                return state + 1;
+              case 'decrement':
+                return state - 1;
+              default:
+                return state;
+            }
+          }
+        };
+
+
+        const cb = jest.fn();
+        registry.register('changeCounter', ['increment', 'decrement'], toRegister);
+        const store = await registry.createStore();
+        store.get('counter').subscribe(cb);
+        await store.do('changeCounter', 'increment');
+        expect(cb).toHaveBeenCalledWith(1);
+        await store.do('changeCounter', 'decrement');
+        expect(cb).toHaveBeenCalledWith(0);
+
+        let err;
+        try {
+          await store.do('changeCounter', 'not-registered-type');
+        } catch(e) {
+          err = e;
+        }
+        expect(err).toBeDefined();
+      });
     });
   });
 
-  fdescribe('sideEffect', () => {
+  describe('sideEffect', () => {
     it('affects state change indirectly', async () => {
       const registry = new ActionsRegistry();
       registry.register('incrementSec', 'INC_SEC', {

@@ -16,6 +16,7 @@ export type IActionHandler = (params: IActionHandlerParams) => any;
 // Handlers registered through action registry
 export type Handler<S = any> = (params: {
   state: S;
+  type?: string;
   payload?: any;
   dispatch: Function;
 }) => S;
@@ -51,7 +52,7 @@ function isActionHandler(ah: IActionSelectHandler): ah is IActionSelectHandler {
 // This is used to craft our dynamic reducer
 interface IActionTypeToHandler {
   name: string;
-  type: string;
+  type: string[];
   handler: IActionSelectHandler;
 }
 
@@ -85,7 +86,7 @@ const generateRandStr = function() {
  * ActionRegistry - registry of all ActionHandlers
  */
 export class ActionsRegistry {
-  private _actionNames: { [name: string]: string } = {};
+  private _actionNames: { [name: string]: string[] } = {};
   private _actionTypes: { [type: string]: boolean } = {}; // track all registered types
   private _actionTypeToHandlers: IActionTypeToHandler[] = [];
   private _sideEffects: { [actionType: string]: ISideEffectHandler[] } = {};
@@ -93,7 +94,7 @@ export class ActionsRegistry {
   public register(name: string, actionHandler: IActionSelectHandler): void;
   public register(
     name: string,
-    actionType: string,
+    actionType: string|string[],
     actionHandler: IActionSelectHandler
   ): void;
 
@@ -105,17 +106,24 @@ export class ActionsRegistry {
    */
   register(
     name: string,
-    actionType: string | IActionSelectHandler,
+    actionType: string | string[] | IActionSelectHandler,
     actionHandler?: IActionSelectHandler
   ) {
     // Handle Overloading
-    if (typeof actionType !== 'string') {
+    // We are dealing with the 2 parameter case: an action with it's correspondling handler.
+    // We generate a random action.type for this case.
+    if (typeof actionType !== 'string' && !(actionType instanceof Array)) {
       actionHandler = actionType;
       actionType = generateRandStr();
       /* istanbul ignore next */
       while (this._actionTypes[actionType] !== undefined) {
         actionType = generateRandStr();
       }
+    }
+
+    // make sure actionType is an array
+    if (typeof actionType === 'string') {
+      actionType = [actionType];
     }
 
     // type assert the actionhandler type so compiler doesn't complain
@@ -138,7 +146,7 @@ export class ActionsRegistry {
     this._actionNames[name] = actionType;
 
     // "Map" of all actionTypes
-    this._actionTypes[actionType] = true;
+    actionType.forEach((a) => this._actionTypes[a] = true );
 
     // ActionType to handler association. This is used to craft our reducer.
     this._actionTypeToHandlers.push({
@@ -202,10 +210,11 @@ export class ActionsRegistry {
         }
 
         // check if it's the action we care about
-        if (action.type === originalIActionToType.type) {
+        if (originalIActionToType.type.indexOf(action.type) > -1) {
           return await originalIActionToType.handler.handler({
             state,
             payload: action.payload,
+            type: action.type,
             dispatch
           });
         }

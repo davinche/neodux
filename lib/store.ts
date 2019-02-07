@@ -16,18 +16,36 @@ export class Store {
 
   constructor(
     private _actionHandler: IActionHandler,
-    actionNameToType?: { [name: string]: string },
+    actionNameToType?: { [name: string]: string[] },
     private _sideEffectHandlers?: { [actionType: string]: ISideEffectHandler[] }
   ) {
     this._root = new ObservableWrapper();
 
     // create action dispatchers
     if (actionNameToType) {
-      Object.keys(actionNameToType).forEach((key: string) => {
-        const actionType = actionNameToType[key];
-        this._actions[key] = async (payload: any) => {
-          await this.dispatch({ type: actionType, payload });
-        };
+      Object.keys(actionNameToType).forEach((name: string) => {
+        const actionTypes = actionNameToType[name];
+        if (actionTypes.length > 1) {
+          // get a map of all valid types for this action
+          const validActionTypes: {[type:string]: boolean} = actionTypes.reduce(
+            (types: {[type:string]: boolean}, name:string) => {
+              types[name] = true;
+              return types;
+          }, {});
+
+          this._actions[name] = async (actionType: string, payload: any) => {
+            // warn the user when they try to dispatch an action type
+            // that is not registered the current action handler
+            if (!validActionTypes[actionType]) {
+              throw new Error(`invalid action type: actionName=${name}; type=${actionType}`);
+            }
+            await this.dispatch({type: actionType, payload});
+          };
+        } else {
+          this._actions[name] = async (payload: any) => {
+            await this.dispatch({type: actionTypes[0], payload});
+          };
+        }
       });
     }
   }
@@ -97,10 +115,10 @@ export class Store {
    * @param {object|string} name of action creator | action
    * @param {any} payload
    */
-  async dispatch(action: IAction | string, payload?: any) {
+  async dispatch(action: IAction | string, type?: string|any, payload?: any) {
     if (typeof action === 'string') {
       if (this._actions[action]) {
-        await this._actions[action](payload);
+        await this._actions[action](type, payload);
         return;
       } else {
         throw new Error(`action="${action}" does not exist`);
