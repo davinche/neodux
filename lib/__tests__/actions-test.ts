@@ -223,7 +223,7 @@ describe('ActionsRegistry', () => {
   });
 
   describe('sideEffect', () => {
-    it('affects state change indirectly', async () => {
+    it('is notified when registered actions are dispatched', async () => {
       const registry = new ActionsRegistry();
       registry.register('incrementSec', 'INC_SEC', {
         selector: 'clock.sec',
@@ -235,36 +235,40 @@ describe('ActionsRegistry', () => {
         }
       });
 
-      registry.register('setMin', {
+      registry.register('incrementMin', 'INC_MIN', {
         selector: 'clock.min',
-        handler: <Handler>function({ state, payload }) {
+        handler: <Handler>function({ state}) {
           if (state === undefined) {
             return 0;
           }
-          return payload;
+          return state + 1;
         }
       });
 
-      // Register our side effect that monitor seconds and dispatches set min
+      // Register our side effect that monitor the number of times
+      // incsec and incmin is dispatched
+      let countMin = 0;
+      let countSec = 0;
       registry.sideEffect({
-        actionType: 'INC_SEC',
-        handler: <Handler>async function({ state, dispatch }) {
-          const sec = state.get('clock.sec').value;
-          const min = state.get('clock.min').value;
-          if (sec && sec + 1 >= 60) {
-            await dispatch('setMin', min + 1);
-            expect(state.get('clock.min').value).toBe(1);
+        actionType: ['INC_SEC', 'INC_MIN'],
+        handler: <Handler>async function({ type }) {
+          switch(type) {
+            case 'INC_SEC':
+              countSec++;
+              break;
+            case 'INC_MIN':
+              countMin++;
+              break;
           }
         }
       });
 
       const store = await registry.createStore();
-      for (let i = 0; i < 59; i++) {
-        await store.do('incrementSec');
-      }
-      expect(store.get('clock.sec').value).toBe(59);
-      expect(store.get('clock.min').value).toBe(0);
-      await store.do('incrementSec');
+      const {incrementMin, incrementSec} = store.actions;
+      await incrementMin();
+      await incrementSec();
+      expect(countMin).toBe(1);
+      expect(countSec).toBe(1);
     });
   });
 });

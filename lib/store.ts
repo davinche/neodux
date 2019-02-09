@@ -138,15 +138,6 @@ export class Store {
 
     return new Promise(async resolve => {
       this._isDispatching = true;
-      // side effects
-      if (this._sideEffectHandlers && this._sideEffectHandlers[action.type]) {
-        this._sideEffectHandlers[action.type].forEach(handler => {
-          handler.handler({
-            state: new Getter(this.value),
-            dispatch: this.dispatch.bind(this)
-          });
-        });
-      }
 
       // get new state
       this._state = await this._actionHandler({
@@ -154,6 +145,17 @@ export class Store {
         action,
         dispatch: this.dispatch.bind(this)
       });
+
+      // side effects
+      if (this._sideEffectHandlers && this._sideEffectHandlers[action.type]) {
+        this._sideEffectHandlers[action.type].forEach(handler => {
+          handler.handler({
+            state: new Getter(this.value),
+            dispatch: this.dispatch.bind(this),
+            type: action.type
+          });
+        });
+      }
 
       this._isDispatching = false;
       resolve();

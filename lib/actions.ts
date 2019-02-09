@@ -58,13 +58,14 @@ interface IActionTypeToHandler {
 
 export interface ISideEffectParams {
   state: object;
+  type?: string;
   dispatch: Function;
 }
 
 export type SideEffect = (params: ISideEffectParams) => void;
 
 export interface ISideEffectHandler {
-  actionType: string;
+  actionType: string|string[];
   handler: SideEffect;
 }
 
@@ -162,11 +163,19 @@ export class ActionsRegistry {
    */
 
   sideEffect(s: ISideEffectHandler) {
-    if (this._sideEffects[s.actionType]) {
-      this._sideEffects[s.actionType].push(s);
-    } else {
-      this._sideEffects[s.actionType] = [s];
+    let actionTypes = s.actionType;
+    if (!(actionTypes instanceof Array)) {
+      actionTypes = [actionTypes];
     }
+
+
+    actionTypes.forEach((actionType: string) => {
+      if (this._sideEffects[actionType]) {
+        this._sideEffects[actionType].push(s);
+      } else {
+        this._sideEffects[actionType] = [s];
+      }
+    });
   }
 
   /**
