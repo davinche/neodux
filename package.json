@@ -1,6 +1,6 @@
 {
   "name": "neodux",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Neodux - State Management for JavaScript",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
