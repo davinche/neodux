@@ -9,7 +9,7 @@ describe('Store', () => {
         };
       };
       const myStore = new Store(ah);
-      await myStore.init();
+      myStore.init();
       expect(myStore.getState()).toEqual({ counter: 0 });
     });
   });
@@ -36,7 +36,7 @@ describe('Store', () => {
 
     const myStore = new Store(actionHandler);
     beforeAll(async () => {
-      await myStore.init();
+      myStore.init();
     });
     it('returns the value from a deeply nested object', () => {
       [
@@ -66,7 +66,7 @@ describe('Store', () => {
         return { foo: 'bar' };
       };
       const store = new Store(actionHandler);
-      await store.init();
+      store.init();
       const observer = {
         next: jest.fn(),
         complete: function() {}
@@ -94,7 +94,7 @@ describe('Store', () => {
       const store = new Store(
         combineActionHandlers({ foo: fooActionHandler, bar: barActionHandler })
       );
-      await store.init();
+      store.init();
       const observer1 = jest.fn();
       const observer2 = jest.fn();
       const observer3 = jest.fn();
@@ -128,7 +128,7 @@ describe('Store', () => {
       };
 
       const store = new Store(actionHandler);
-      await store.init();
+      store.init();
       const observer = jest.fn();
       store.subscribe(observer);
       expect(observer).toHaveBeenCalledWith(expectedState);
@@ -151,7 +151,7 @@ describe('Store', () => {
       const store = new Store(
         combineActionHandlers({ foo: fooactionHandler, bar: baractionHandler })
       );
-      await store.init();
+      store.init();
       expect(store.getState()).toEqual({
         foo: 'bar',
         bar: {

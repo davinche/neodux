@@ -50,8 +50,8 @@ export class Store {
     }
   }
 
-  async init(initialState?: any) {
-    this._state = await this._actionHandler({
+  init(initialState?: any) {
+    this._state = this._actionHandler({
       state: initialState,
       action: undefined,
       dispatch: (action: IAction | string, payload?: any) =>
@@ -140,7 +140,7 @@ export class Store {
       this._isDispatching = true;
 
       // get new state
-      this._state = await this._actionHandler({
+      this._state = this._actionHandler({
         state: this._state,
         action,
         dispatch: this.dispatch.bind(this)

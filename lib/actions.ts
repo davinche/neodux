@@ -71,9 +71,9 @@ export interface ISideEffectHandler {
 
 // Merge the results of two functions.
 /* istanbul ignore next */
-const compose = async function(fn: Function, gn: Function) {
-  return async function(x: any) {
-    return await fn(await gn(x));
+const compose = function(fn: Function, gn: Function) {
+  return function(x: any) {
+    return fn(gn(x));
   };
 };
 
@@ -202,11 +202,11 @@ export class ActionsRegistry {
     const handlerToActionHandler = this._actionTypeToHandlers.map(function(
       originalIActionToType
     ) {
-      const actionHandler = async function(params: IActionHandlerParams) {
+      const actionHandler = function(params: IActionHandlerParams) {
         const { state, action, dispatch } = params;
         // get initial state
         if (state === undefined) {
-          return await originalIActionToType.handler.handler({
+          return originalIActionToType.handler.handler({
             state: undefined,
             payload: undefined,
             dispatch
@@ -220,7 +220,7 @@ export class ActionsRegistry {
 
         // check if it's the action we care about
         if (originalIActionToType.type.indexOf(action.type) > -1) {
-          return await originalIActionToType.handler.handler({
+          return originalIActionToType.handler.handler({
             state,
             payload: action.payload,
             type: action.type,
@@ -286,16 +286,16 @@ export class ActionsRegistry {
     []);
 
     // Combine all the action handlers into ONE
-    return async function({
+    return function({
       state = {},
       action,
       dispatch
     }: IActionHandlerParams) {
       // root values...
-      const rootPromises = Object.keys(actionTree.root).map(async function(
+      Object.keys(actionTree.root).map(function(
         key
       ) {
-        state[key] = await actionTree.root[key]({
+        state[key] = actionTree.root[key]({
           state: state[key],
           action,
           dispatch
@@ -303,7 +303,7 @@ export class ActionsRegistry {
       });
 
       // nested values...
-      const nestedPromises = nestedTraversers.map(function(traverser: any) {
+      nestedTraversers.forEach(function(traverser: any) {
         let curr = state;
         const path = traverser.path;
         for (let i = 0; i < path.length; i++) {
@@ -312,17 +312,14 @@ export class ActionsRegistry {
           }
           curr = curr[path[i]];
         }
-        return Promise.all(
-          Object.keys(traverser.handler).map(async function(key) {
-            curr[key] = await traverser.handler[key]({
-              state: curr[key],
-              action,
-              dispatch
-            });
-          })
-        );
+        Object.keys(traverser.handler).map(function(key) {
+          curr[key] = traverser.handler[key]({
+            state: curr[key],
+            action,
+            dispatch
+          });
+        })
       });
-      await Promise.all([...rootPromises, ...nestedPromises]);
       return state;
     };
   }
@@ -331,13 +328,13 @@ export class ActionsRegistry {
    * createStore - creates the store based on the registered actions
    * @param {any} initialState
    */
-  async createStore(initialState?: any) {
-    const store = await new Store(
+  createStore(initialState?: any) {
+    const store = new Store(
       this.createActionHandler(),
       this._actionNames,
       this._sideEffects
     );
-    await store.init(initialState);
+    store.init(initialState);
     return store;
   }
 }

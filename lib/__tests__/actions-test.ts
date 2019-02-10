@@ -92,13 +92,13 @@ describe('ActionsRegistry', () => {
       });
 
       const actionHandler = registry.createActionHandler();
-      let state = await actionHandler({
+      let state = actionHandler({
         state: undefined,
         action: undefined,
         dispatch
       });
       expect(state).toEqual(expectedResult);
-      state = await actionHandler({
+      state = actionHandler({
         state,
         action: { type: 'SET_HOUR', payload: 13 },
         dispatch
@@ -144,7 +144,7 @@ describe('ActionsRegistry', () => {
         }
       });
 
-      const store = await registry.createStore();
+      const store = registry.createStore();
       const sec = jest.fn();
       const min = jest.fn();
       store.get('clock', 'sec').subscribe(sec);
@@ -176,7 +176,7 @@ describe('ActionsRegistry', () => {
           return (state + 1) % 60;
         }
       });
-      const store = await registry.createStore();
+      const store = registry.createStore();
       let error;
       try {
         await store.dispatch('foo');
@@ -204,7 +204,7 @@ describe('ActionsRegistry', () => {
 
         const cb = jest.fn();
         registry.register('changeCounter', ['increment', 'decrement'], toRegister);
-        const store = await registry.createStore();
+        const store = registry.createStore();
         store.get('counter').subscribe(cb);
         await store.do('changeCounter', 'increment');
         expect(cb).toHaveBeenCalledWith(1);
@@ -251,7 +251,7 @@ describe('ActionsRegistry', () => {
       let countSec = 0;
       registry.sideEffect({
         actionType: ['INC_SEC', 'INC_MIN'],
-        handler: <Handler>async function({ type }) {
+        handler: <Handler>function({ type }) {
           switch(type) {
             case 'INC_SEC':
               countSec++;
@@ -263,10 +263,10 @@ describe('ActionsRegistry', () => {
         }
       });
 
-      const store = await registry.createStore();
+      const store = registry.createStore();
       const {incrementMin, incrementSec} = store.actions;
-      await incrementMin();
-      await incrementSec();
+      incrementMin();
+      incrementSec();
       expect(countMin).toBe(1);
       expect(countSec).toBe(1);
     });
