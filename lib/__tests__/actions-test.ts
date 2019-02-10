@@ -303,6 +303,12 @@ describe('ActionsRegistry', () => {
       expect(sub).toBeCalledWith(0);
       await increment();
       expect(sub).toBeCalledWith(1);
+      await increment();
+      expect(sub).toBeCalledWith(2);
+      await decrement();
+      await decrement();
+      await decrement();
+      expect(sub).toBeCalledWith(-1);
     });
   });
 });
