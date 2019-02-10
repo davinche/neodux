@@ -263,7 +263,7 @@ export class ActionsRegistry {
         } else {
           root[dest][suffix] = compose(
             ah.handler,
-            root[ah.selector]
+            root[dest][suffix]
           );
         }
         return accum;
