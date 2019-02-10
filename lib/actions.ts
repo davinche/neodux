@@ -69,11 +69,13 @@ export interface ISideEffectHandler {
   handler: SideEffect;
 }
 
-// Merge the results of two functions.
+// Merge the results of two handler functions.
 /* istanbul ignore next */
 const compose = function(fn: Function, gn: Function) {
-  return function(x: any) {
-    return fn(gn(x));
+  return function(p: IActionHandlerParams) {
+    const copy = Object.assign({}, p);
+    copy.state = gn(p);
+    return fn(copy);
   };
 };
 
@@ -205,6 +207,8 @@ export class ActionsRegistry {
       const actionHandler = function(params: IActionHandlerParams) {
         const { state, action, dispatch } = params;
         // get initial state
+        if (action) {
+        }
         if (state === undefined) {
           return originalIActionToType.handler.handler({
             state: undefined,

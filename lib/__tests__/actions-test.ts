@@ -108,63 +108,6 @@ describe('ActionsRegistry', () => {
   });
 
   describe('createStore', () => {
-    it('(clock example) creates a store based on the registered actions', async () => {
-      const registry = new ActionsRegistry();
-      registry.register('incrementSec', {
-        selector: 'clock.sec',
-        handler: <Handler>function({ state, dispatch }) {
-          if (state === undefined) {
-            return 0;
-          }
-          const result = state + 1;
-          if (result >= 60) {
-            dispatch({ type: 'INCREMENT_MIN' });
-          }
-          return result % 60;
-        }
-      });
-
-      registry.register('incrementMin', 'INCREMENT_MIN', {
-        selector: 'clock.min',
-        handler: <Handler>function({ state, dispatch }) {
-          if (state === undefined) {
-            return 0;
-          }
-          return state + 1;
-        }
-      });
-
-      registry.register('resetClock', {
-        selector: 'clock',
-        handler: <Handler>function() {
-          return {
-            sec: 0,
-            min: 0
-          };
-        }
-      });
-
-      const store = registry.createStore();
-      const sec = jest.fn();
-      const min = jest.fn();
-      store.get('clock', 'sec').subscribe(sec);
-      store.get('clock', 'min').subscribe(min);
-      expect(sec).toHaveBeenCalledWith(0);
-      expect(min).toHaveBeenCalledWith(0);
-      for (let i = 0; i < 59; i++) {
-        await store.do('incrementSec');
-      }
-      expect(sec).toHaveBeenCalledWith(59);
-      expect(min).toHaveBeenCalledWith(0);
-      await store.do('incrementSec');
-      // flush dispatch queue for testing);
-      await new Promise((resolve) => setImmediate(resolve));
-      expect(min).toHaveBeenCalledWith(1);
-      await store.do('resetClock');
-      expect(sec).toHaveBeenCalledWith(0);
-      expect(min).toHaveBeenCalledWith(0);
-    });
-
     it('throws when dispatching an unknown action', async () => {
       const registry = new ActionsRegistry();
       registry.register('incrementSec', {
@@ -269,6 +212,97 @@ describe('ActionsRegistry', () => {
       incrementSec();
       expect(countMin).toBe(1);
       expect(countSec).toBe(1);
+    });
+  });
+
+  describe('clock example', () => {
+    it ('passes', async () => {
+      const registry = new ActionsRegistry();
+      registry.register('incrementSec', {
+        selector: 'clock.sec',
+        handler: <Handler>function({ state, dispatch }) {
+          if (state === undefined) {
+            return 0;
+          }
+          const result = state + 1;
+          if (result >= 60) {
+            dispatch({ type: 'INCREMENT_MIN' });
+          }
+          return result % 60;
+        }
+      });
+
+      registry.register('incrementMin', 'INCREMENT_MIN', {
+        selector: 'clock.min',
+        handler: <Handler>function({ state, dispatch }) {
+          if (state === undefined) {
+            return 0;
+          }
+          return state + 1;
+        }
+      });
+
+      registry.register('resetClock', {
+        selector: 'clock',
+        handler: <Handler>function() {
+          return {
+            sec: 0,
+            min: 0
+          };
+        }
+      });
+
+      const store = registry.createStore();
+      const sec = jest.fn();
+      const min = jest.fn();
+      store.get('clock', 'sec').subscribe(sec);
+      store.get('clock', 'min').subscribe(min);
+      expect(sec).toHaveBeenCalledWith(0);
+      expect(min).toHaveBeenCalledWith(0);
+      for (let i = 0; i < 59; i++) {
+        await store.do('incrementSec');
+      }
+      expect(sec).toHaveBeenCalledWith(59);
+      expect(min).toHaveBeenCalledWith(0);
+      await store.do('incrementSec');
+      // flush dispatch queue for testing);
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(min).toHaveBeenCalledWith(1);
+      await store.do('resetClock');
+      expect(sec).toHaveBeenCalledWith(0);
+      expect(min).toHaveBeenCalledWith(0);
+    });
+  });
+
+  describe('counter example', () => {
+    it('passes', async () => {
+      const registry = new ActionsRegistry();
+      registry.register('increment', {
+        selector: 'counter',
+        handler: <Handler>function({ state }) {
+          if (state === undefined) {
+            return 0;
+          }
+          return state + 1;
+        }
+      });
+      registry.register('decrement', {
+        selector: 'counter',
+        handler: <Handler>function({ state }) {
+          if (state === undefined) {
+            return 0;
+          }
+          return state - 1;
+        }
+      });
+
+      const sub = jest.fn();
+      const store = registry.createStore();
+      const {increment, decrement} = store.actions;
+      store.get('counter').subscribe(sub);
+      expect(sub).toBeCalledWith(0);
+      await increment();
+      expect(sub).toBeCalledWith(1);
     });
   });
 });
