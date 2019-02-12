@@ -18,12 +18,13 @@ class Getter implements IGetter {
   constructor(private _value: any) {}
 
   get(key: string | Array<string>, ...remaining: Array<string>): IGetter {
+    if (this._value === undefined) {
+      return NoValue;
+    }
+
     if (!(key instanceof Array)) {
       if (!remaining.length) {
-        key = key
-          .split('.')
-          .map(s => s.trim())
-          .filter(s => s !== '');
+        key = key.split('.');
       } else {
         key = [key];
       }

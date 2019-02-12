@@ -50,6 +50,11 @@ describe('Getter', () => {
     expect(g.get(['this', 'does', 'not', 'exist']).value).toBeUndefined();
   });
 
+  it('returns undefined if the intial value is undefined', () => {
+    const g = new Getter(undefined);
+    expect(g.get('foo').get('bar').value).toBeUndefined();
+  });
+
   it('returns undefined for an undefined key', () => {
     expect(g.get('doesnotexist').value).toBeUndefined();
   });
