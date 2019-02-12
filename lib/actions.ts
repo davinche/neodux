@@ -11,7 +11,9 @@ export interface IActionHandlerParams<S = any> {
   dispatch: Function;
 }
 
-export type IActionHandler = (params: IActionHandlerParams) => any;
+export interface IActionHandler {
+  (params: IActionHandlerParams) : any;
+}
 
 // Handlers registered through action registry
 export type Handler<S = any> = (params: {

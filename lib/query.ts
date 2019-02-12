@@ -88,10 +88,7 @@ export class StoreQuery {
   get(key: string | Array<string>, ...remaining: Array<string>) {
     if (!(key instanceof Array)) {
       if (!remaining.length) {
-        key = key
-          .split('.')
-          .map(s => s.trim())
-          .filter(s => s !== '');
+        key = key.split('.');
       } else {
         key = [key];
       }

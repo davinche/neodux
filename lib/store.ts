@@ -75,10 +75,7 @@ export class Store {
 
   get(key: string | string[] = '', ...rest: string[]) {
     if (!(key instanceof Array)) {
-      key = key
-        .split('.')
-        .map(s => s.trim())
-        .filter(s => s !== '');
+      key = key.split('.')
     }
     return new StoreQuery(this._root, [...key, ...rest]);
   }
@@ -111,7 +108,7 @@ export class Store {
   }
 
   /**
-   * dispatch - dispatch action to reducers
+   * dispatch - dispatch action to action handlers
    * @param {object|string} name of action creator | action
    * @param {any} payload
    */
