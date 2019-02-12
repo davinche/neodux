@@ -61,7 +61,9 @@ export class ObservableWrapper {
     if (this.get(key)) {
       return this.get(key);
     }
-    const initialValue = this.observable.value[key];
+    const initialValue = this.observable.value !== undefined ?
+      this.observable.value[key] :
+      undefined;
     const childWrapper = new ObservableWrapper(
       new Observable(initialValue, true),
       { key, parent: this }
@@ -203,11 +205,11 @@ export class StoreQuery {
       // If the getter is NoValue, then this value does not
       // exist in the state tree.
       // This is likely a mistake by the developer so we want to error out here.
-      if (getter === NoValue) {
-        throw new Error(
-          `[state.${this._path.join('.')}] does not exist on the state tree]`
-        );
-      }
+      // if (getter === NoValue) {
+      //   throw new Error(
+      //     `[state.${this._path.join('.')}] does not exist on the state tree]`
+      //   );
+      // }
 
       // upgrade each node along the object into an observable
       for (let i = startUpgradeIndex; i < this._path.length; i++) {
